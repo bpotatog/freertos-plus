@@ -21,7 +21,8 @@ static uint32_t get_unaligned(const uint8_t * d) {
 
 static ssize_t romfs_read(void * opaque, void * buf, size_t count) {
     struct romfs_fds_t * f = (struct romfs_fds_t *) opaque;
-    const uint8_t * size_p = f->file - 4;
+    // minus file name 16 bytes and file size 4 bytes 
+    const uint8_t * size_p = f->file - 20;
     uint32_t size = get_unaligned(size_p);
     
     if ((f->cursor + count) > size)
@@ -35,7 +36,8 @@ static ssize_t romfs_read(void * opaque, void * buf, size_t count) {
 
 static off_t romfs_seek(void * opaque, off_t offset, int whence) {
     struct romfs_fds_t * f = (struct romfs_fds_t *) opaque;
-    const uint8_t * size_p = f->file - 4;
+    // minus file name 16 bytes and file size 4 bytes 
+    const uint8_t * size_p = f->file - 20;
     uint32_t size = get_unaligned(size_p);
     uint32_t origin;
     
@@ -65,15 +67,21 @@ static off_t romfs_seek(void * opaque, off_t offset, int whence) {
     return offset;
 }
 
+int kj_debug;
+int kj_size;
+const uint8_t * g_romfs;
 const uint8_t * romfs_get_file_by_hash(const uint8_t * romfs, uint32_t h, uint32_t * len) {
     const uint8_t * meta;
-
-    for (meta = romfs; get_unaligned(meta) && get_unaligned(meta + 4); meta += get_unaligned(meta + 4) + 8) {
+    kj_debug = get_unaligned(romfs);
+    kj_size = get_unaligned(romfs +4);
+    g_romfs = romfs;
+    // plus 16 more bytes for file name
+    for (meta = romfs; get_unaligned(meta) && get_unaligned(meta + 4); meta += get_unaligned(meta + 4) + 24) {
         if (get_unaligned(meta) == h) {
             if (len) {
                 *len = get_unaligned(meta + 4);
             }
-            return meta + 8;
+            return meta + 24;
         }
     }
 

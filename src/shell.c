@@ -15,6 +15,20 @@ typedef struct {
 	const char *desc;
 } cmdlist;
 
+
+#define MAX_FS 16
+struct fs_t {
+    uint32_t hash;
+    fs_open_t cb;
+    void * opaque;
+};
+
+extern int kj_debug;
+extern int kj_size;
+extern const uint8_t * g_romfs;
+
+extern struct fs_t fss[MAX_FS];
+
 void ls_command(int, char **);
 void man_command(int, char **);
 void cat_command(int, char **);
@@ -25,6 +39,9 @@ void host_command(int, char **);
 void mmtest_command(int, char **);
 void test_command(int, char **);
 
+static uint32_t get_unaligned(const uint8_t * d) {
+    return ((uint32_t) d[0]) | ((uint32_t) (d[1] << 8)) | ((uint32_t) (d[2] << 16)) | ((uint32_t) (d[3] << 24));
+}
 #define MKCL(n, d) {.name=#n, .fptr=n ## _command, .desc=d}
 
 cmdlist cl[]={
@@ -60,7 +77,18 @@ int parse_command(char *str, char *argv[]){
 }
 
 void ls_command(int n, char *argv[]){
-
+	if(n == 1){
+		//fio_printf(1, "%d\r\n", fss[0].hash);
+		//fio_printf(1, "%d\r\n", fss[0].cb(fss[0].opaque, "romfs", 0, O_RDONLY));
+		//fio_printf(1, "%d \r\n", g_romfs);
+		fss[0].cb(fss[0].opaque, "romfs", 0, O_RDONLY);
+		const uint8_t * meta;
+		fio_printf(1, "\r\n");
+		for(meta = g_romfs ; get_unaligned(meta) && get_unaligned(meta+4) ; meta+=get_unaligned(meta+4) + 24){
+			fio_printf(1, "%s ", meta+8);
+		}
+		fio_printf(1, "\r\n");
+	}
 }
 
 int filedump(const char *filename){
@@ -123,7 +151,6 @@ void host_command(int n, char *argv[]){
             len += (strlen(argv[i]) + 1);
             command[len - 1] = ' ';
         }
-        command[len - 1] = '\0';
         rnt=host_action(SYS_SYSTEM, command);
         fio_printf(1, "\r\nfinish with exit code %d.\r\n", rnt);
     } 
@@ -173,3 +200,4 @@ cmdfunc *do_command(const char *cmd){
 	}
 	return NULL;	
 }
+#include "shell.h"
