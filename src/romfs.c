@@ -67,13 +67,10 @@ static off_t romfs_seek(void * opaque, off_t offset, int whence) {
     return offset;
 }
 
-int kj_debug;
-int kj_size;
+// temp the metadata of file system
 const uint8_t * g_romfs;
 const uint8_t * romfs_get_file_by_hash(const uint8_t * romfs, uint32_t h, uint32_t * len) {
     const uint8_t * meta;
-    kj_debug = get_unaligned(romfs);
-    kj_size = get_unaligned(romfs +4);
     g_romfs = romfs;
     // plus 16 more bytes for file name
     for (meta = romfs; get_unaligned(meta) && get_unaligned(meta + 4); meta += get_unaligned(meta + 4) + 24) {

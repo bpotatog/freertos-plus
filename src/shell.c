@@ -15,7 +15,8 @@ typedef struct {
 	const char *desc;
 } cmdlist;
 
-
+// extern registered file system 
+/*********************************************/
 #define MAX_FS 16
 struct fs_t {
     uint32_t hash;
@@ -23,12 +24,10 @@ struct fs_t {
     void * opaque;
 };
 
-extern int kj_debug;
-extern int kj_size;
 extern const uint8_t * g_romfs;
 
 extern struct fs_t fss[MAX_FS];
-
+/*********************************************/
 void ls_command(int, char **);
 void man_command(int, char **);
 void cat_command(int, char **);
@@ -39,6 +38,7 @@ void host_command(int, char **);
 void mmtest_command(int, char **);
 void test_command(int, char **);
 
+// get 4 bytes hash value and file size
 static uint32_t get_unaligned(const uint8_t * d) {
     return ((uint32_t) d[0]) | ((uint32_t) (d[1] << 8)) | ((uint32_t) (d[2] << 16)) | ((uint32_t) (d[3] << 24));
 }
@@ -77,14 +77,15 @@ int parse_command(char *str, char *argv[]){
 }
 
 void ls_command(int n, char *argv[]){
-	if(n == 1){
-		//fio_printf(1, "%d\r\n", fss[0].hash);
-		//fio_printf(1, "%d\r\n", fss[0].cb(fss[0].opaque, "romfs", 0, O_RDONLY));
-		//fio_printf(1, "%d \r\n", g_romfs);
+	if(n == 1){// work only if there is one argument
+		// callback of romfs
 		fss[0].cb(fss[0].opaque, "romfs", 0, O_RDONLY);
+		// temp the metadata of file system
 		const uint8_t * meta;
 		fio_printf(1, "\r\n");
+		// access every file
 		for(meta = g_romfs ; get_unaligned(meta) && get_unaligned(meta+4) ; meta+=get_unaligned(meta+4) + 24){
+			// 8th byte to 23rd byte stored file name
 			fio_printf(1, "%s ", meta+8);
 		}
 		fio_printf(1, "\r\n");
