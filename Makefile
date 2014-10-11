@@ -41,7 +41,7 @@ INCDIR = include \
 INCLUDES = $(addprefix -I,$(INCDIR))
 DATDIR = data
 TOOLDIR = tool
-TMPDiR = output
+TMPDIR = output
 
 HEAP_IMPL = heap_ww
 SRC = $(wildcard $(addsuffix /*.c,$(SRCDIR))) \
@@ -78,6 +78,8 @@ $(OUTDIR)/%.o: %.c
 	@mkdir -p $(dir $@)
 	@echo "    CC      "$@
 	@$(CROSS_COMPILE)gcc $(CFLAGS) -MMD -MF $@.d -o $@ -c $(INCLUDES) $<
+
+fib_non.o: fib_non.s
 
 $(OUTDIR)/%.o: %.s
 	@mkdir -p $(dir $@)

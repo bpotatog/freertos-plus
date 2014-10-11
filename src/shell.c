@@ -26,6 +26,10 @@ struct fs_t {
 
 extern const uint8_t * g_romfs;
 
+/********************* fib *******************/
+extern int fibonacci_non(int x);
+/*********************************************/
+
 extern struct fs_t fss[MAX_FS];
 /*********************************************/
 void ls_command(int, char **);
@@ -36,6 +40,11 @@ void host_command(int, char **);
 void help_command(int, char **);
 void host_command(int, char **);
 void mmtest_command(int, char **);
+
+/******************** atoi *******************/
+int atoi(char *input);
+/*********************************************/
+
 void test_command(int, char **);
 
 // get 4 bytes hash value and file size
@@ -168,6 +177,16 @@ void help_command(int n,char *argv[]){
 	}
 }
 
+int atoi(char *input){
+	int i;
+	int sum = 0;
+	for (i=0 ; input[i]!='\0' ; i++){
+		sum *= 10;
+		sum += input[i] - '0';
+	}
+	return sum;
+}
+
 void test_command(int n, char *argv[]) {
     int handle;
     int error;
@@ -189,6 +208,10 @@ void test_command(int n, char *argv[]) {
     }
 
     host_action(SYS_CLOSE, handle);
+    // calculate fibonacci by argument
+    int para = atoi(argv[1]);
+    int ans = fibonacci_non(para);
+    fio_printf(1, "%d -> %d\r\n", para, ans);
 }
 
 cmdfunc *do_command(const char *cmd){
